@@ -63,8 +63,20 @@ void spawn_food(){
     food_position = new_position;
 }
 
+void play_eating_sound(){
+    channels[0].waveforms   = Waveform::SQUARE;
+    channels[0].frequency   = 1047;
+    channels[0].attack_ms   = 10;
+    channels[0].decay_ms    = 150;
+    channels[0].sustain     = 80;
+    channels[0].release_ms  = 50;
+    channels[0].volume      = 12000;
+    channels[0].trigger_attack();
+}
+
 void check_food(){
     if (segments[0] == food_position){
+        play_eating_sound();
         grow_snake();
         spawn_food();
     }
@@ -172,9 +184,9 @@ void update(uint32_t time) {
     get_input();
     if (time - timer > 400){
         update_direction();
-        check_food();
         move_snake();
         check_game_over();
+        check_food();
         timer = time;
     }
 }
