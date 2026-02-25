@@ -145,6 +145,12 @@ void update_direction(){
     current_direction = input_direction;
 }
 
+void draw_score(){
+    int score = (snake_size - 1) * 100;
+    screen.pen = Pen(255,255,255);
+    screen.text("Score: " + std::to_string(score), minimal_font, Point(2, 2));
+}
+
 void init() {
     set_screen_mode(ScreenMode::hires);
 }
@@ -159,6 +165,7 @@ void render(uint32_t time) {
     }
     draw_food();
     draw_snake();
+    draw_score();
 }
 
 void update(uint32_t time) {
