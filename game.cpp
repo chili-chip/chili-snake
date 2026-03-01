@@ -5,10 +5,12 @@ using namespace blit;
 #define SCALE_FACTOR 4
 #define X_LIMIT 128/SCALE_FACTOR
 #define Y_LIMIT 128/SCALE_FACTOR
+#define SAVE_FILE "snek_save_data.bin"
 
 Point segments[1024] = {Point(16,16)};
 int snake_size = 1;
 Point food_position = Point(10,10);
+int highscore = 0;
 
 enum direction{
     UP,
@@ -23,6 +25,32 @@ direction input_direction = UP;
 uint32_t timer = 0;
 
 bool game_over = false;
+bool highscore_saved = false;
+
+int get_score(){
+    return (snake_size - 1) * 100;
+}
+
+void load_highscore(){
+    File highscore_file(SAVE_FILE, OpenMode::read);
+    if (highscore_file.is_open()) {
+        char buffer[4];
+        highscore_file.read(0, 4, buffer);
+        highscore = *((int*)buffer);
+        highscore_file.close();
+    } else {
+        highscore = 0;
+    }
+}
+
+void save_highscore(){
+    File highscore_file(SAVE_FILE, OpenMode::write);
+    if (highscore_file.is_open()) {
+        int score_val = highscore;
+        highscore_file.write(0, 4, (char*)&score_val);
+        highscore_file.close();
+    }
+}
 
 void reset_game(){
     segments[0] = Point(16,16);
@@ -31,6 +59,7 @@ void reset_game(){
     current_direction = UP;
     timer = 0;
     game_over = false;
+    highscore_saved = false;
 }
 
 void draw_snake(){
@@ -86,6 +115,13 @@ void check_game_over(){
     for (int i = 1; i < snake_size; i++){
         if (segments[0] == segments[i]){
             game_over = true;
+            // Save highscore if current score is higher
+            int current_score = get_score();
+            if (current_score > highscore) {
+                highscore = current_score;
+                save_highscore();
+            }
+            highscore_saved = true;
             return;
         }
     }
@@ -160,19 +196,27 @@ void update_direction(){
 void draw_score(){
     int score = (snake_size - 1) * 100;
     screen.pen = Pen(255,255,255);
-    screen.text("Score: " + std::to_string(score), minimal_font, Point(2, 2));
+    screen.text(std::to_string(score), minimal_font, Point(128, 0), false, TextAlign::top_right);
+}
+
+void draw_game_over(){
+    screen.pen = Pen(255,255,255);
+    screen.text("Game Over", minimal_font, Point(64, 60), true, TextAlign::center_center);
+    int score = get_score();
+    screen.text("Score: " + std::to_string(score), minimal_font, Point(64, 75), true, TextAlign::center_center);
+    screen.text("High: " + std::to_string(highscore), minimal_font, Point(64, 85), true, TextAlign::center_center);
 }
 
 void init() {
     set_screen_mode(ScreenMode::hires);
+    load_highscore();
 }
 
 void render(uint32_t time) {
     screen.pen = Pen(0,0,0);
     screen.clear();
     if (game_over) {
-        screen.pen = Pen(255,255,255);
-        screen.text("Game Over", minimal_font, Point(64, 64), true, TextAlign::center_center);
+        draw_game_over();
         return;
     }
     draw_food();
@@ -182,7 +226,7 @@ void render(uint32_t time) {
 
 void update(uint32_t time) {
     get_input();
-    if (time - timer > 400){
+    if (time - timer > 200){
         update_direction();
         move_snake();
         check_game_over();
