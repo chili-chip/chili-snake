@@ -1,10 +1,10 @@
 title: snek
-description: Eat them apples!
+description: Eat them apples! A polished snake game with a soundtrack, high scores and golden apples.
 author: teriyakigod
 splash:
-  file: assets/no-image.png
+  file: assets/splash.png
 icon:
-  file: assets/no-icon.png
-version: v0.0.1
+  file: assets/icon.png
+version: v1.0.0
 category: game
 url: https://github.com/chili-chip/chili-snake

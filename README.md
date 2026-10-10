@@ -1,68 +1,80 @@
-# Game template
+# snek
 
-![Build](https://github.com/chili-chip/32blit-boilerplate/workflows/Build/badge.svg)
+![Build](https://github.com/chili-chip/chili-snake/workflows/Build/badge.svg)
 
-This is a basic template for starting game projects for VGC Zero, using 32blit sdk. It shows the basic
-code layout and asset pipeline, hopefully giving folk a starting point for
-any new projects.
+*Eat them apples!* A polished snake game for the ChiliChip **VGC Zero**
+(128x128), built on the [chilichip fork of the 32blit SDK](https://github.com/chili-chip/32blit-sdk).
+It also runs on desktop (SDL) and in the browser (Emscripten).
 
-It's based on the original `template` project from the 
-[32blit-boilerplate](https://github.com/32blit/32blit-boilerplate), with added support for chilichip's vgc zero.
+![Gameplay](docs/gameplay.gif)
 
-## Usage
+![Title, gameplay and results screens](docs/screenshots.png)
 
-[Use this template](https://github.com/chili-chip/32blit-boilerplate/generate) to
-generate your own project.
+## Features
 
-* Edit the CMakeList.txt file to set the name of your project
-* Edit the metadata.yml file to set the information for your project
-* Edit the LICENSE file to set your name on the license
-* Write lots of super cool code!
+- Title screen with an animated logo and an attract-mode snake playing in the background
+- Options: speed (slow / normal / fast), walls (wrap around or solid), music and sound on/off; saved between sessions
+- Top-5 high score table with three-letter names, saved with the 32blit save API (the old v0.0.1 high score is imported)
+- Golden apples every fifth apple: worth 5x, but they vanish after a few seconds
+- The snake speeds up as it grows, and the music speeds up with it
+- Pause menu, countdown, death animation with screen shake, particles and score popups
+- Original chiptune soundtrack (title theme, in-game loop, game-over and high-score jingles) and sound effects, synthesised live on the 32blit audio channels
 
-You should then be able to follow the usual build instructions.
+## Controls
 
-For local builds this is:
+| Button | Menu | In game |
+| --- | --- | --- |
+| D-pad | Move / change option | Steer (two turns are buffered) |
+| A | Select | |
+| B | Back | |
+| MENU or Y | | Pause |
+
+On desktop: arrow keys or WASD, **Z** = A, **X** = B, **V** = Y, **Esc** = MENU.
+
+## Scoring
+
+Each apple is worth 50 / 100 / 150 points on slow / normal / fast, plus 50 with walls on. Golden apples are worth five apples. Fill the whole board to win.
+
+## Code layout
+
+| File | What |
+| --- | --- |
+| `src/game.cpp` | Scenes (title, play, pause, game over, name entry, scores, credits) and the 32blit `init`/`update`/`render` |
+| `src/snake.cpp` | Board rules: movement, turn buffer, apples, collisions, demo autopilot |
+| `src/render.cpp` | All drawing: board, snake, apples, HUD, effects, logo, text helpers |
+| `src/audio.cpp` | Step sequencer, soundtrack data and sound effects |
+| `src/save.cpp` | Settings and high score persistence |
+| `tools/make_art.py` | Regenerates the launcher splash and icon (`assets/`) |
+
+## Building
+
+Clone this repo next to `32blit-sdk` (and `pico-sdk` / `pico-extras` for the VGC build).
+
+Desktop:
 ```
-mkdir build
-cd build
-cmake -D32BLIT_DIR=/path/to/32blit-sdk/ ..
+mkdir build && cd build
+cmake -D32BLIT_DIR=../../32blit-sdk ..
+make
+./game.elf
 ```
 
-For vgc zero builds this is:
+VGC Zero:
 ```
-mkdir build.vgc
-cd build.vgc
+mkdir build.vgc && cd build.vgc
 cmake .. \
   -D32BLIT_DIR=../../32blit-sdk \
   -DPICO_SDK_PATH=../../pico-sdk \
   -DPICO_BOARD=chilichip_vgc \
   -DPICO_PLATFORM=rp2350-arm-s \
   -DCMAKE_TOOLCHAIN_FILE=../../32blit-sdk/pico2.toolchain
+make
 ```
-[detailed instructions for vgc](https://github.com/chili-chip/32blit-sdk/blob/master/docs/vgc.md)
-
-Platform/Editor specific insctuctions [can be found in the fork of the main 32blit repo](https://github.com/chili-chip/32blit-sdk/blob/master/docs/vgc.md)
-(For Visual Studio, you should follow the "Option 2" instructions, as the boilerplate does not contain a solution file)
-
-## VS Code Setup (Optional but Recommended)
-
-For the best development experience with VS Code, install these extensions:
-- **CMake Tools** - For building and configuring the project with CMake
-- **Cortex-Debug** - For debugging on the Pico 2 with OpenOCD
-
-These extensions enable integrated building, flashing, and debugging directly from VS Code.
-
-## Flashing to Pico via SWD
-
-Make sure you have:
-- raspberrypi's [openocd fork ](https://github.com/raspberrypi/openocd) installed (rp2350 support not yet in openocd) 
-- Pico Debugger or Picoprobe connected via SWD pins (SWDIO, SWCLK, GND)
-- The game has been built successfully (produces `game.elf`)
-
-
-To flash the built executable to your Raspberry Pi Pico using the Pico Debugger over SWD:
-
-```bash
-cd build
+See the [VGC build guide](https://github.com/chili-chip/32blit-sdk/blob/master/docs/vgc.md) for details,
+and flash over SWD with:
+```
 openocd -f interface/cmsis-dap.cfg -f target/rp2350.cfg -c "adapter speed 5000; program "game.elf" verify reset exit"
 ```
+
+## Licence
+
+MIT, see [LICENSE](LICENSE). The music, sound effects and art were made for this game and are covered by the same licence.
