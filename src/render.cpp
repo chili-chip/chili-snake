@@ -304,8 +304,8 @@ void popup(Point px, const char *s, Pen color) {
     if(p.life < slot->life) slot = &p;
   }
   // Keep the text on screen when eating at the board edges.
-  slot->x = std::max(14, std::min(114, px.x));
-  slot->y = std::max(BOARD_Y + 4, px.y);
+  slot->x = std::max(14, std::min(114, int(px.x)));
+  slot->y = std::max(BOARD_Y + 4, int(px.y));
   slot->life = 700;
   strncpy(slot->text, s, sizeof(slot->text) - 1);
   slot->text[sizeof(slot->text) - 1] = 0;
@@ -444,7 +444,7 @@ void big_text(std::string_view s, Point center, int scale_by, Pen color) {
   Surface tmp(buf, PixelFormat::RGBA, Size(128, 8));
 
   Size sz = screen.measure_text(s, minimal_font, true);
-  int w = std::min(sz.w, 128);
+  int w = std::min(int(sz.w), 128);
   Rect src(0, 0, w, 8);
   Rect dst(center.x - w * scale_by / 2, center.y - 4 * scale_by, w * scale_by, 8 * scale_by);
 
