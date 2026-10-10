@@ -5,7 +5,13 @@ cmake_minimum_required(VERSION 3.10)
 project(game LANGUAGES C CXX ASM)
 
 # Add your sources here (adding headers is optional, but helps some CMake generators)
-set(PROJECT_SOURCE game.cpp game.hpp)
+set(PROJECT_SOURCE
+  src/game.cpp src/game.hpp
+  src/snake.cpp src/snake.hpp
+  src/render.cpp src/render.hpp
+  src/audio.cpp src/audio.hpp
+  src/save.cpp src/save.hpp
+)
 
 # ... and any other files you want in the release here
 set(PROJECT_DISTRIBS LICENSE README.md)
