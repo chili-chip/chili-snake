@@ -1,6 +1,6 @@
 # snek
 
-![Build](https://github.com/chili-chip/chili-snake/workflows/Build/badge.svg)
+[![Build](https://github.com/chili-chip/game-template/actions/workflows/build.yml/badge.svg)](https://github.com/chili-chip/game-template/actions/workflows/build.yml)
 
 *Eat them apples!* A polished snake game for the ChiliChip **VGC Zero**
 (128x128), built on the [chilichip fork of the 32blit SDK](https://github.com/chili-chip/32blit-sdk).
@@ -10,7 +10,8 @@ It also runs on desktop (SDL) and in the browser (Emscripten).
 
 ![Title, gameplay and results screens](docs/screenshots.png)
 
-## Features
+[Use this template](https://github.com/chili-chip/game-template/generate) to
+generate your own project.
 
 - Title screen with an animated logo and an attract-mode snake playing in the background
 - Options: speed (slow / normal / fast), walls (wrap around or solid), music and sound on/off; saved between sessions
