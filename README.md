@@ -72,6 +72,36 @@ make
 See the [VGC build guide](https://github.com/chili-chip/32blit-sdk/blob/master/docs/vgc.md) for details,
 and flash over SWD with:
 ```
+To build an installable `.blit` for the VGC Zero loader instead of a standalone `.uf2`, add
+`-DBLIT_EXECUTABLE_PICO_BLIT=1` to the vgc cmake command (or use the `vgc-blit` preset), then install it over USB with
+`32blit install game.blit`. The console needs the loader flashed first; see the
+[loader instructions](https://github.com/chili-chip/32blit-sdk/blob/master/docs/vgc.md#loader-and-blit-games-os-preview).
+
+[detailed instructions for vgc](https://github.com/chili-chip/32blit-sdk/blob/master/docs/vgc.md)
+
+Platform/Editor specific insctuctions [can be found in the fork of the main 32blit repo](https://github.com/chili-chip/32blit-sdk/blob/master/docs/vgc.md)
+(For Visual Studio, you should follow the "Option 2" instructions, as the boilerplate does not contain a solution file)
+
+## VS Code Setup (Optional but Recommended)
+
+For the best development experience with VS Code, install these extensions:
+- **CMake Tools** - For building and configuring the project with CMake
+- **Cortex-Debug** - For debugging on the Pico 2 with OpenOCD
+
+These extensions enable integrated building, flashing, and debugging directly from VS Code.
+
+## Flashing to Pico via SWD
+
+Make sure you have:
+- raspberrypi's [openocd fork ](https://github.com/raspberrypi/openocd) installed (rp2350 support not yet in openocd) 
+- Pico Debugger or Picoprobe connected via SWD pins (SWDIO, SWCLK, GND)
+- The game has been built successfully (produces `game.elf`)
+
+
+To flash the built executable to your Raspberry Pi Pico using the Pico Debugger over SWD:
+
+```bash
+cd build
 openocd -f interface/cmsis-dap.cfg -f target/rp2350.cfg -c "adapter speed 5000; program "game.elf" verify reset exit"
 ```
 
