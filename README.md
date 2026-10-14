@@ -1,6 +1,6 @@
 # snek
 
-[![Build](https://github.com/chili-chip/game-template/actions/workflows/build.yml/badge.svg)](https://github.com/chili-chip/game-template/actions/workflows/build.yml)
+[![Build](https://github.com/chili-chip/chili-snake/actions/workflows/build.yml/badge.svg)](https://github.com/chili-chip/chili-snake/actions/workflows/build.yml)
 
 *Eat them apples!* A polished snake game for the ChiliChip **VGC Zero**
 (128x128), built on the [chilichip fork of the 32blit SDK](https://github.com/chili-chip/32blit-sdk).
@@ -10,8 +10,7 @@ It also runs on desktop (SDL) and in the browser (Emscripten).
 
 ![Title, gameplay and results screens](docs/screenshots.png)
 
-[Use this template](https://github.com/chili-chip/game-template/generate) to
-generate your own project.
+Want to make your own game? Start from [game-template](https://github.com/chili-chip/game-template).
 
 - Title screen with an animated logo and an attract-mode snake playing in the background
 - Options: speed (slow / normal / fast), walls (wrap around or solid), music and sound on/off; saved between sessions
@@ -71,17 +70,15 @@ cmake .. \
 make
 ```
 See the [VGC build guide](https://github.com/chili-chip/32blit-sdk/blob/master/docs/vgc.md) for details,
-and flash over SWD with:
-```
+and [flash over SWD](#flashing-to-pico-via-swd) below.
+
 To build an installable `.blit` for the VGC Zero loader instead of a standalone `.uf2`, add
 `-DBLIT_EXECUTABLE_PICO_BLIT=1` to the vgc cmake command (or use the `vgc-blit` preset), then install it over USB with
 `32blit install game.blit`. The console needs the loader flashed first; see the
 [loader instructions](https://github.com/chili-chip/32blit-sdk/blob/master/docs/vgc.md#loader-and-blit-games-os-preview).
 
-[detailed instructions for vgc](https://github.com/chili-chip/32blit-sdk/blob/master/docs/vgc.md)
-
-Platform/Editor specific insctuctions [can be found in the fork of the main 32blit repo](https://github.com/chili-chip/32blit-sdk/blob/master/docs/vgc.md)
-(For Visual Studio, you should follow the "Option 2" instructions, as the boilerplate does not contain a solution file)
+Platform and editor specific instructions are in the [32blit SDK fork](https://github.com/chili-chip/32blit-sdk/blob/master/docs/vgc.md)
+(for Visual Studio, follow the "Option 2" instructions, as this repo does not contain a solution file).
 
 ## VS Code Setup (Optional but Recommended)
 
