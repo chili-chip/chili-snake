@@ -1,8 +1,10 @@
 #include "render.hpp"
 
+#include "chili/fx.hpp"
+#include "chili/ui.hpp"
+
 #include <algorithm>
 #include <cmath>
-#include <cstring>
 
 using namespace blit;
 
@@ -12,6 +14,20 @@ static Point shake(0, 0);
 
 void set_shake(Point offset) {
   shake = offset;
+}
+
+Point shake_offset() {
+  return shake;
+}
+
+void apply_theme() {
+  chili::theme.text = colors::text;
+  chili::theme.dim = colors::dim;
+  chili::theme.accent = colors::accent;
+  chili::theme.gold = colors::gold;
+  chili::theme.highlight = Pen(70, 150, 80, 150);
+  chili::theme.panel = Pen(10, 20, 14, 235);
+  chili::theme.border = Pen(90, 170, 90);
 }
 
 Point cell_to_px(Point cell) {
@@ -254,103 +270,12 @@ void draw_hud(uint32_t score, uint32_t best, int length, uint32_t time) {
   screen.pen = Pen(100, 210, 70);
   screen.pixel(Point(7, 4));
   screen.pixel(Point(8, 3));
-  text(std::to_string(score), Point(13, 4), colors::text);
+  chili::fx::text(std::to_string(score), Point(13, 4), colors::text);
 
   bool beaten = score > best && best > 0;
   uint32_t shown_best = std::max(score, best);
   Pen best_col = beaten && ((time / 200) & 1) ? colors::gold : colors::dim;
-  text("BEST " + std::to_string(shown_best), Point(126, 4), best_col, TextAlign::top_right);
-}
-
-// ---------------------------------------------------------------------------
-// Effects
-
-struct Particle {
-  float x, y, vx, vy;
-  int16_t life, max_life;
-  Pen color;
-};
-
-struct Popup {
-  float x, y;
-  int16_t life;
-  char text[8];
-  Pen color;
-};
-
-static Particle particles[48];
-static Popup popups[6];
-
-void burst(Point px, Pen color, int count) {
-  for(auto &pt : particles) {
-    if(count <= 0) break;
-    if(pt.life > 0) continue;
-    float ang = (blit::random() % 628) / 100.0f;
-    float spd = 0.02f + (blit::random() % 100) / 2000.0f;
-    pt.x = px.x;
-    pt.y = px.y;
-    pt.vx = cosf(ang) * spd;
-    pt.vy = sinf(ang) * spd - 0.03f;
-    pt.max_life = pt.life = 300 + blit::random() % 300;
-    pt.color = (blit::random() & 1) ? color : Pen(255, 255, 220);
-    count--;
-  }
-}
-
-void popup(Point px, const char *s, Pen color) {
-  Popup *slot = &popups[0];
-  for(auto &p : popups) {
-    if(p.life <= 0) { slot = &p; break; }
-    if(p.life < slot->life) slot = &p;
-  }
-  // Keep the text on screen when eating at the board edges.
-  slot->x = std::max(14, std::min(114, int(px.x)));
-  slot->y = std::max(BOARD_Y + 4, int(px.y));
-  slot->life = 700;
-  strncpy(slot->text, s, sizeof(slot->text) - 1);
-  slot->text[sizeof(slot->text) - 1] = 0;
-  slot->color = color;
-}
-
-void update_effects(uint32_t dt) {
-  for(auto &pt : particles) {
-    if(pt.life <= 0) continue;
-    pt.life -= dt;
-    pt.x += pt.vx * dt;
-    pt.y += pt.vy * dt;
-    pt.vy += 0.00015f * dt;
-  }
-  for(auto &p : popups) {
-    if(p.life <= 0) continue;
-    p.life -= dt;
-    p.y -= 0.02f * dt;
-  }
-}
-
-void draw_effects() {
-  for(auto &pt : particles) {
-    if(pt.life <= 0) continue;
-    Pen c = pt.color;
-    c.a = uint8_t(255 * pt.life / pt.max_life);
-    screen.pen = c;
-    screen.pixel(Point(int(pt.x), int(pt.y)) + shake);
-  }
-  for(auto &p : popups) {
-    if(p.life <= 0) continue;
-    Pen c = p.color;
-    c.a = uint8_t(std::min(255, p.life * 255 / 300));
-    Pen sh(0, 0, 0, c.a);
-    Point at(int(p.x), int(p.y));
-    screen.pen = sh;
-    screen.text(p.text, minimal_font, at + Point(1, 1), true, TextAlign::center_center);
-    screen.pen = c;
-    screen.text(p.text, minimal_font, at, true, TextAlign::center_center);
-  }
-}
-
-void clear_effects() {
-  for(auto &pt : particles) pt.life = 0;
-  for(auto &p : popups) p.life = 0;
+  chili::fx::text("BEST " + std::to_string(shown_best), Point(126, 4), best_col, TextAlign::top_right);
 }
 
 // ---------------------------------------------------------------------------
@@ -410,55 +335,6 @@ void draw_logo(int y, uint32_t time) {
   // An apple waiting after the K.
   int bob = ((time / 350) & 1) ? -1 : 0;
   apple_shape(Point(x0 + total + 2, y + 10), bob, Pen(225, 40, 52), Pen(150, 20, 34), Pen(255, 190, 190));
-}
-
-// ---------------------------------------------------------------------------
-// UI helpers
-
-void dim_screen(uint8_t alpha) {
-  screen.pen = Pen(0, 0, 0, alpha);
-  screen.rectangle(Rect(0, 0, 128, 128));
-}
-
-void panel(Rect r) {
-  screen.pen = Pen(10, 20, 14, 235);
-  screen.rectangle(r);
-  screen.pen = Pen(90, 170, 90);
-  screen.rectangle(Rect(r.x + 1, r.y, r.w - 2, 1));
-  screen.rectangle(Rect(r.x + 1, r.y + r.h - 1, r.w - 2, 1));
-  screen.rectangle(Rect(r.x, r.y + 1, 1, r.h - 2));
-  screen.rectangle(Rect(r.x + r.w - 1, r.y + 1, 1, r.h - 2));
-}
-
-void text(std::string_view s, Point p, Pen color, TextAlign align, bool shadow) {
-  if(shadow) {
-    screen.pen = Pen(0, 0, 0, 200);
-    screen.text(s, minimal_font, p + Point(1, 1), true, align);
-  }
-  screen.pen = color;
-  screen.text(s, minimal_font, p, true, align);
-}
-
-void big_text(std::string_view s, Point center, int scale_by, Pen color) {
-  static uint8_t buf[128 * 8 * 4];
-  Surface tmp(buf, PixelFormat::RGBA, Size(128, 8));
-
-  Size sz = screen.measure_text(s, minimal_font, true);
-  int w = std::min(int(sz.w), 128);
-  Rect src(0, 0, w, 8);
-  Rect dst(center.x - w * scale_by / 2, center.y - 4 * scale_by, w * scale_by, 8 * scale_by);
-
-  for(int pass = 0; pass < 2; pass++) {
-    memset(buf, 0, sizeof(buf));
-    tmp.pen = pass == 0 ? Pen(0, 0, 0, 220) : color;
-    tmp.text(s, minimal_font, Point(0, 0), true);
-    Rect d = dst;
-    if(pass == 0) {
-      d.x += scale_by / 2 + 1;
-      d.y += scale_by / 2 + 1;
-    }
-    screen.stretch_blit(&tmp, src, d);
-  }
 }
 
 }

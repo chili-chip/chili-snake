@@ -8,22 +8,41 @@ using namespace blit;
 
 namespace snek {
 
-static const uint32_t SAVE_MAGIC = 0x4b4e5332; // "2SNK"
-static const uint8_t SAVE_VERSION = 1;
+static const uint32_t SAVE_MAGIC = 0x4b4e5332;  // "2SNK"
+// Version 2 is the chili game SDK's save format. Version 1 was snek v1.0.0's
+// own layout, read below.
+static const uint16_t SAVE_VERSION = 2;
+
+chili::Save<SaveData> save(SAVE_MAGIC, SAVE_VERSION);
+
+// Save written by snek v1.0.0: the same fields, after a magic and a 1-byte
+// version.
+struct SaveV1 {
+  uint32_t magic;
+  uint8_t version;
+  uint8_t speed;
+  uint8_t walls;
+  uint8_t music;
+  uint8_t sound;
+  char last_name[4];
+  ScoreEntry scores[SCORE_SLOTS];
+};
+
 // Save file written by v0.0.1, holding a single int high score.
 static const char *LEGACY_SAVE_FILE = "snek_save_data.bin";
 
-SaveData save;
+static bool import_v1() {
+  SaveV1 old;
+  if(!read_save(old) || old.magic != SAVE_MAGIC || old.version != 1) return false;
 
-static void set_defaults() {
-  memset(&save, 0, sizeof(save));
-  save.magic = SAVE_MAGIC;
-  save.version = SAVE_VERSION;
-  save.speed = NORMAL;
-  save.walls = 0;
-  save.music = 1;
-  save.sound = 1;
-  strcpy(save.last_name, "AAA");
+  SaveData &d = save.data;
+  d.speed = old.speed;
+  d.walls = old.walls;
+  d.music = old.music;
+  d.sound = old.sound;
+  memcpy(d.last_name, old.last_name, sizeof(d.last_name));
+  for(int i = 0; i < SCORE_SLOTS; i++) d.scores[i] = old.scores[i];
+  return true;
 }
 
 static void import_legacy_highscore() {
@@ -33,47 +52,26 @@ static void import_legacy_highscore() {
   int32_t old_score = 0;
   if(legacy.read(0, sizeof(old_score), (char *)&old_score) == sizeof(old_score) && old_score > 0) {
     // v0.0.1 gave 100 points per apple on a wrapping board, same as NORMAL now.
-    insert_score(0, "OLD", old_score, old_score / 100 + 1, NORMAL, false);
+    ScoreEntry e{};
+    memcpy(e.name, "OLD", 3);
+    e.score = old_score;
+    e.length = old_score / 100 + 1;
+    e.speed = NORMAL;
+    save.data.scores.insert(0, e);
   }
   legacy.close();
 }
 
 void load_save() {
-  if(read_save(save) && save.magic == SAVE_MAGIC && save.version == SAVE_VERSION) {
-    for(auto &e : save.scores) e.name[3] = 0;
-    save.last_name[3] = 0;
-    if(save.speed > FAST) save.speed = NORMAL;
-    return;
+  if(!save.load()) {
+    if(!import_v1()) import_legacy_highscore();
+    save.store();
   }
 
-  set_defaults();
-  import_legacy_highscore();
-  write_save_data();
-}
-
-void write_save_data() {
-  write_save(save);
-}
-
-int score_rank(uint32_t score) {
-  if(score == 0) return -1;
-  for(int i = 0; i < SCORE_SLOTS; i++) {
-    if(score > save.scores[i].score) return i;
-  }
-  return -1;
-}
-
-void insert_score(int rank, const char *name, uint32_t score, uint16_t length, uint8_t speed, bool walls) {
-  if(rank < 0 || rank >= SCORE_SLOTS) return;
-  for(int i = SCORE_SLOTS - 1; i > rank; i--) save.scores[i] = save.scores[i - 1];
-
-  ScoreEntry &e = save.scores[rank];
-  memset(&e, 0, sizeof(e));
-  memcpy(e.name, name, 3);
-  e.score = score;
-  e.length = length;
-  e.speed = speed;
-  e.walls = walls ? 1 : 0;
+  SaveData &d = save.data;
+  for(int i = 0; i < SCORE_SLOTS; i++) d.scores[i].name[3] = 0;
+  d.last_name[3] = 0;
+  if(d.speed > FAST) d.speed = NORMAL;
 }
 
 }

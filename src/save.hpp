@@ -1,8 +1,11 @@
 #pragma once
 
+#include "chili/save.hpp"
+#include "chili/scores.hpp"
+
 #include <cstdint>
 
-// Settings and the high score table, persisted with the 32blit save API.
+// Settings and the high score table, kept with the chili game SDK's Save.
 namespace snek {
 
 enum Speed : uint8_t { SLOW, NORMAL, FAST };
@@ -18,25 +21,18 @@ struct ScoreEntry {
 };
 
 struct SaveData {
-  uint32_t magic;
-  uint8_t version;
-  uint8_t speed;
-  uint8_t walls;
-  uint8_t music;
-  uint8_t sound;
-  char last_name[4];
-  ScoreEntry scores[SCORE_SLOTS];
+  uint8_t speed = NORMAL;
+  uint8_t walls = 0;
+  uint8_t music = 1;
+  uint8_t sound = 1;
+  char last_name[4] = "AAA";
+  chili::HighScores<ScoreEntry, SCORE_SLOTS> scores{};
 };
 
-extern SaveData save;
+extern chili::Save<SaveData> save;
 
+// Loads the save. Imports the v1.0.0 save and the v0.0.1 high score when
+// there is no current one.
 void load_save();
-void write_save_data();
-
-// Rank (0-based) the score would take in the table, or -1 if it does not
-// make it.
-int score_rank(uint32_t score);
-// Inserts a score at the given rank, pushing lower entries down.
-void insert_score(int rank, const char *name, uint32_t score, uint16_t length, uint8_t speed, bool walls);
 
 }
