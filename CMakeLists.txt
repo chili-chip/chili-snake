@@ -9,7 +9,7 @@ set(PROJECT_SOURCE
   src/game.cpp src/game.hpp
   src/snake.cpp src/snake.hpp
   src/render.cpp src/render.hpp
-  src/audio.cpp src/audio.hpp
+  src/sounds.cpp src/sounds.hpp
   src/save.cpp src/save.hpp
 )
 
@@ -25,7 +25,17 @@ endif()
 
 find_package (32BLIT CONFIG REQUIRED PATHS ../32blit-sdk $ENV{PATH_32BLIT_SDK})
 
+# Menus, scenes, saves, music and effects: https://game-sdk.chilichip.eu/
+include(FetchContent)
+FetchContent_Declare(
+  chili-game-sdk
+  GIT_REPOSITORY https://github.com/chili-chip/chili-game-sdk.git
+  GIT_TAG 3dfc343d0f84ca585c19b5031c0bc47a06360263 # switch to v0.1.0 once tagged
+)
+FetchContent_MakeAvailable(chili-game-sdk)
+
 blit_executable (${PROJECT_NAME} ${PROJECT_SOURCE})
+target_link_libraries(${PROJECT_NAME} chili-game-sdk)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
   set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".html")

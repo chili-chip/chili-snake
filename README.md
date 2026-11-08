@@ -37,13 +37,15 @@ Each apple is worth 50 / 100 / 150 points on slow / normal / fast, plus 50 with 
 
 ## Code layout
 
+snek is built on the [chili game SDK](https://game-sdk.chilichip.eu/), which gives it its menus, scenes, save file, high score table, name entry, music player and effects. CMake fetches the SDK at a pinned version.
+
 | File | What |
 | --- | --- |
 | `src/game.cpp` | Scenes (title, play, pause, game over, name entry, scores, credits) and the 32blit `init`/`update`/`render` |
 | `src/snake.cpp` | Board rules: movement, turn buffer, apples, collisions, demo autopilot |
-| `src/render.cpp` | All drawing: board, snake, apples, HUD, effects, logo, text helpers |
-| `src/audio.cpp` | Step sequencer, soundtrack data and sound effects |
-| `src/save.cpp` | Settings and high score persistence |
+| `src/render.cpp` | snek's drawing: board, snake, apples, HUD, logo, and its colours for the SDK theme |
+| `src/sounds.cpp` | Soundtrack and sound effects, played by the SDK |
+| `src/save.cpp` | Settings and high scores; imports saves from v1.0.0 and v0.0.1 |
 | `tools/make_art.py` | Regenerates the launcher splash and icon (`assets/`) |
 
 ## Building
